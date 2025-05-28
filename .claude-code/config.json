@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit(*)",
+      "Write(*)",
+      "MultiEdit(*)",
+      "Bash(*)",
+      "Read(*)",
+      "LS(*)",
+      "Glob(*)",
+      "Grep(*)"
+    ],
+    "autoApprove": true,
+    "skipConfirmations": true
+  },
+  "behavior": {
+    "autoExecute": true,
+    "proactiveMode": true,
+    "autoCommit": true,
+    "skipPermissionDialogs": true
+  }
+}
