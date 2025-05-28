@@ -4,14 +4,15 @@ on:
   issue_comment:
     types: [created]
 
+permissions:
+  issues: write
+  contents: read
+  pull-requests: write
+
 jobs:
   claude:
     if: contains(github.event.comment.body, '@claude')
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      contents: read
-      pull-requests: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
