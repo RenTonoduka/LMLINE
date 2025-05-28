@@ -1,0 +1,242 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String    @id @default(cuid())
+  firebaseUid String    @unique @map("firebase_uid")
+  email       String    @unique
+  name        String?
+  profileUrl  String?   @map("profile_url")
+  lineUserId  String?   @unique @map("line_user_id")
+  role        UserRole  @default(STUDENT)
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  lastLogin   DateTime? @map("last_login")
+
+  // Relations
+  enrollments    Enrollment[]
+  lessonProgress LessonProgress[]
+  quizAttempts   QuizAttempt[]
+  aiChats        AiChat[]
+  courses        Course[] // For instructors
+
+  @@map("users")
+}
+
+model Course {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  thumbnail   String?
+  category    String
+  difficulty  Difficulty  @default(BEGINNER)
+  price       Decimal     @default(0)
+  isPublished Boolean     @default(false) @map("is_published")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  
+  // Relations
+  instructorId String @map("instructor_id")
+  instructor   User   @relation(fields: [instructorId], references: [id])
+  
+  lessons     Lesson[]
+  enrollments Enrollment[]
+
+  @@map("courses")
+}
+
+model Lesson {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  content     String? // Text content
+  videoUrl    String?     @map("video_url")
+  duration    Int? // in seconds
+  order       Int
+  isPublished Boolean     @default(false) @map("is_published")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  courseId String @map("course_id")
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  materials      Material[]
+  quizzes        Quiz[]
+  lessonProgress LessonProgress[]
+
+  @@map("lessons")
+}
+
+model Material {
+  id        String   @id @default(cuid())
+  title     String
+  fileUrl   String   @map("file_url")
+  fileType  String   @map("file_type")
+  fileSize  Int      @map("file_size")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  lessonId String @map("lesson_id")
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@map("materials")
+}
+
+model Quiz {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  timeLimit   Int? // in minutes
+  passingScore Int      @default(70) @map("passing_score")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  lessonId String @map("lesson_id")
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  questions    Question[]
+  quizAttempts QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+model Question {
+  id            String        @id @default(cuid())
+  question      String
+  questionType  QuestionType  @map("question_type")
+  options       Json? // For multiple choice questions
+  correctAnswer String        @map("correct_answer")
+  explanation   String?
+  points        Int           @default(1)
+  order         Int
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  quizId String @map("quiz_id")
+  quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  
+  answers Answer[]
+
+  @@map("questions")
+}
+
+model Enrollment {
+  id           String           @id @default(cuid())
+  enrolledAt   DateTime         @default(now()) @map("enrolled_at")
+  completedAt  DateTime?        @map("completed_at")
+  status       EnrollmentStatus @default(ACTIVE)
+  progress     Float            @default(0) // 0-100
+  lastAccessed DateTime?        @map("last_accessed")
+
+  // Relations
+  userId   String @map("user_id")
+  courseId String @map("course_id")
+  user     User   @relation(fields: [userId], references: [id])
+  course   Course @relation(fields: [courseId], references: [id])
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
+}
+
+model LessonProgress {
+  id           String    @id @default(cuid())
+  isCompleted  Boolean   @default(false) @map("is_completed")
+  watchTime    Int       @default(0) @map("watch_time") // in seconds
+  lastPosition Int       @default(0) @map("last_position") // video position in seconds
+  completedAt  DateTime? @map("completed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  userId   String @map("user_id")
+  lessonId String @map("lesson_id")
+  user     User   @relation(fields: [userId], references: [id])
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@map("lesson_progress")
+}
+
+model QuizAttempt {
+  id          String    @id @default(cuid())
+  score       Float
+  isPassed    Boolean   @map("is_passed")
+  timeSpent   Int? // in seconds
+  startedAt   DateTime  @default(now()) @map("started_at")
+  completedAt DateTime? @map("completed_at")
+
+  // Relations
+  userId String @map("user_id")
+  quizId String @map("quiz_id")
+  user   User   @relation(fields: [userId], references: [id])
+  quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  
+  answers Answer[]
+
+  @@map("quiz_attempts")
+}
+
+model Answer {
+  id        String   @id @default(cuid())
+  answer    String
+  isCorrect Boolean  @map("is_correct")
+  points    Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  attemptId  String   @map("attempt_id")
+  questionId String   @map("question_id")
+  attempt    QuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("answers")
+}
+
+model AiChat {
+  id        String   @id @default(cuid())
+  message   String
+  response  String
+  context   Json? // Additional context for AI
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("ai_chats")
+}
+
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+  ESSAY
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  DROPPED
+  SUSPENDED
+}
