@@ -1,0 +1,272 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  name            String?
+  image           String?
+  role            UserRole @default(STUDENT)
+  firebaseUid     String?  @unique
+  lineUserId      String?  @unique
+  emailVerified   Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  enrollments     Enrollment[]
+  submissions     Submission[]
+  chatMessages    ChatMessage[]
+  notifications   Notification[]
+  activities      UserActivity[]
+  createdCourses  Course[]       @relation("CourseCreator")
+
+  @@map("users")
+}
+
+model Course {
+  id            String       @id @default(cuid())
+  title         String
+  description   String?
+  image         String?
+  price         Decimal?
+  isPublished   Boolean      @default(false)
+  categoryId    String?
+  creatorId     String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Relations
+  creator       User         @relation("CourseCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  category      Category?    @relation(fields: [categoryId], references: [id])
+  chapters      Chapter[]
+  enrollments   Enrollment[]
+  reviews       Review[]
+
+  @@index([categoryId])
+  @@index([creatorId])
+  @@map("courses")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  courses   Course[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("categories")
+}
+
+model Chapter {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  videoUrl    String?
+  position    Int
+  isPublished Boolean @default(false)
+  isFree      Boolean @default(false)
+  courseId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userProgress UserProgress[]
+
+  @@index([courseId])
+  @@map("chapters")
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+  @@map("enrollments")
+}
+
+model UserProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  chapterId   String
+  isCompleted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  chapter     Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chapterId])
+  @@index([chapterId])
+  @@map("user_progress")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String?
+  userId    String
+  courseId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+  @@map("reviews")
+}
+
+model Assignment {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  dueDate     DateTime?
+  maxScore    Int      @default(100)
+  courseId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  submissions Submission[]
+
+  @@index([courseId])
+  @@map("assignments")
+}
+
+model Submission {
+  id           String           @id @default(cuid())
+  content      String
+  score        Int?
+  feedback     String?
+  status       SubmissionStatus @default(SUBMITTED)
+  userId       String
+  assignmentId String
+  submittedAt  DateTime         @default(now())
+  gradedAt     DateTime?
+
+  // Relations
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([assignmentId])
+  @@map("submissions")
+}
+
+model ChatMessage {
+  id          String      @id @default(cuid())
+  content     String
+  messageType MessageType @default(TEXT)
+  isFromBot   Boolean     @default(false)
+  userId      String?
+  sessionId   String
+  createdAt   DateTime    @default(now())
+
+  // Relations
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId])
+  @@index([userId])
+  @@map("chat_messages")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  userId    String
+  createdAt DateTime         @default(now())
+
+  // Relations
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+model UserActivity {
+  id           String       @id @default(cuid())
+  action       String
+  details      String?
+  activityType ActivityType
+  userId       String
+  createdAt    DateTime     @default(now())
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_activities")
+}
+
+model LineIntegration {
+  id          String   @id @default(cuid())
+  lineUserId  String   @unique
+  userName    String?
+  isActive    Boolean  @default(true)
+  webhookUrl  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("line_integrations")
+}
+
+// Enums
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum SubmissionStatus {
+  SUBMITTED
+  GRADED
+  PENDING_REVIEW
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  AUDIO
+  VIDEO
+}
+
+enum NotificationType {
+  COURSE_UPDATE
+  ASSIGNMENT_DUE
+  MESSAGE_RECEIVED
+  SYSTEM_ALERT
+}
+
+enum ActivityType {
+  LOGIN
+  COURSE_ACCESS
+  ASSIGNMENT_SUBMIT
+  CHAT_MESSAGE
+  PROFILE_UPDATE
+}
