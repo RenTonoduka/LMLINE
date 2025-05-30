@@ -1,7 +1,7 @@
 export * from './auth';
 
 // Re-export Prisma types
-export type {
+import type {
   User,
   Course,
   Category,
@@ -21,6 +21,27 @@ export type {
   NotificationType,
   ActivityType,
 } from '@prisma/client';
+
+export type {
+  User,
+  Course,
+  Category,
+  Chapter,
+  Enrollment,
+  UserProgress,
+  Review,
+  Assignment,
+  Submission,
+  ChatMessage,
+  Notification,
+  UserActivity,
+  LineIntegration,
+  UserRole,
+  SubmissionStatus,
+  MessageType,
+  NotificationType,
+  ActivityType,
+};
 
 // Additional custom types
 export interface CourseWithDetails extends Course {

@@ -27,6 +27,7 @@ LINEと連携したAI搭載の学習管理システム（LMS）です。Next.js 
 - **Styling**: Tailwind CSS with custom design system
 - **Icons**: Lucide React
 - **Forms**: React Hook Form + Zod validation
+- **Container**: Docker & Docker Compose
 
 ## 📁 プロジェクト構造
 
@@ -53,16 +54,91 @@ src/
 
 ## 🔧 セットアップ手順
 
-### 1. 依存関係のインストール
+### 🐳 Docker を使用する場合（推奨）
 
+Docker環境での起動が最も簡単です。PostgreSQL、Redis、アプリケーションが自動的にセットアップされます。
+
+#### 前提条件
+- Docker
+- Docker Compose
+
+#### 起動手順
+
+1. **リポジトリのクローン**
+```bash
+git clone <repository-url>
+cd LMLINE
+```
+
+2. **環境変数の設定**
+```bash
+# .env.exampleをコピーして.envを作成
+cp .env.example .env
+
+# .envファイルを編集して必要な値を設定
+nano .env
+```
+
+3. **Docker起動（本番環境）**
+```bash
+# 起動スクリプトを使用（推奨）
+./docker-start.sh
+
+# または手動で起動
+docker-compose up -d --build
+```
+
+4. **Docker起動（開発環境）**
+```bash
+# 開発環境での起動
+docker-compose -f docker-compose.dev.yml up -d --build
+```
+
+#### Docker コマンド
+
+```bash
+# アプリケーションの起動
+docker-compose up -d
+
+# ログの確認
+docker-compose logs -f
+
+# データベースマイグレーション
+docker-compose exec app npx prisma migrate deploy
+
+# サービスの停止
+docker-compose down
+
+# ボリュームも含めて完全削除
+docker-compose down --volumes --remove-orphans
+```
+
+#### 利用可能なサービス
+
+| サービス | URL | 説明 |
+|---------|-----|------|
+| Web App | http://localhost:3000 | メインアプリケーション |
+| PostgreSQL | localhost:5432 | データベース |
+| Redis | localhost:6379 | キャッシュ・セッションストア |
+
+### 💻 ローカル開発環境の場合
+
+Dockerを使用しない場合の従来のセットアップ方法です。
+
+#### 前提条件
+- Node.js 18以上
+- PostgreSQL
+- Redis（オプション）
+
+#### セットアップ手順
+
+1. **依存関係のインストール**
 ```bash
 npm install
 ```
 
-### 2. 環境変数の設定
-
+2. **環境変数の設定**
 `.env.example`をコピーして`.env.local`を作成し、必要な環境変数を設定してください：
-
 ```bash
 cp .env.example .env.local
 ```
@@ -72,8 +148,7 @@ cp .env.example .env.local
 - PostgreSQLデータベースURL
 - その他のAPI キー
 
-### 3. データベースのセットアップ
-
+3. **データベースのセットアップ**
 ```bash
 # Prismaクライアントの生成
 npm run db:generate
@@ -85,8 +160,7 @@ npm run db:migrate
 npm run db:seed
 ```
 
-### 4. 開発サーバーの起動
-
+4. **開発サーバーの起動**
 ```bash
 npm run dev
 ```

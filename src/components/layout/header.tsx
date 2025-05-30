@@ -27,6 +27,14 @@ export function Header() {
             >
               コース
             </Link>
+            {user && (
+              <Link
+                href="/dashboard"
+                className="transition-colors hover:text-foreground/80 text-foreground/60"
+              >
+                ダッシュボード
+              </Link>
+            )}
             <Link
               href="/about"
               className="transition-colors hover:text-foreground/80 text-foreground/60"

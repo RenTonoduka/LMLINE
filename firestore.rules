@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read and write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Courses are readable by authenticated users
+    match /courses/{courseId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null; // Adjust based on admin roles
+    }
+    
+    // Chapters are readable by authenticated users
+    match /chapters/{chapterId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null; // Adjust based on admin roles
+    }
+    
+    // Enrollments can be read/written by the enrolled user
+    match /enrollments/{enrollmentId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // Progress can be read/written by the user
+    match /progress/{progressId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+  }
+}

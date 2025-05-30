@@ -46,23 +46,9 @@ jest.mock('firebase/firestore', () => ({
   addDoc: jest.fn(),
 }))
 
-// Mock Prisma
-jest.mock('@/lib/prisma', () => ({
-  user: {
-    findUnique: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    findMany: jest.fn(),
-  },
-  course: {
-    findMany: jest.fn(),
-    findUnique: jest.fn(),
-    create: jest.fn(),
-  },
-  enrollment: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-  },
+// Mock database
+jest.mock('@/lib/db', () => ({
+  query: jest.fn(),
 }))
 
 // Mock environment variables

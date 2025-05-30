@@ -1,0 +1,32 @@
+# Development Dockerfile
+FROM node:18-alpine
+
+# Install dependencies for native modules and OpenSSL
+RUN apk add --no-cache libc6-compat openssl openssl-dev
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies)
+RUN npm ci
+
+# Copy Prisma schema
+COPY prisma ./prisma/
+
+# Generate Prisma client for linux-musl
+RUN npx prisma generate
+
+# Copy source code
+COPY . .
+
+# Expose the port
+EXPOSE 3000
+
+# Set development environment
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Start the development server
+CMD ["npm", "run", "dev"] 

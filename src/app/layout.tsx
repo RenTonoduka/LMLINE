@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { AuthProvider } from '@/contexts/auth-context';
+import { SimpleAuthProvider } from '@/contexts/simple-auth-context';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from 'next-themes';
 import '@/styles/globals.css';
@@ -28,8 +29,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            {children}
-            <Toaster position="top-right" />
+            <SimpleAuthProvider>
+              {children}
+              <Toaster position="top-right" />
+            </SimpleAuthProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

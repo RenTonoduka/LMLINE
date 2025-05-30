@@ -70,26 +70,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const authUser: AuthUser = {
-          ...firebaseUser,
-          id: firebaseUser.uid,
-          role: 'user', // Will be updated from database
-        };
-        setUser(authUser);
-        await syncUserWithDatabase(firebaseUser);
-      } else {
-        setUser(null);
-        setDbUser(null);
-      }
+    if (!auth || !auth.onAuthStateChanged || typeof auth.onAuthStateChanged !== 'function') {
+      console.warn('Firebase auth not available, skipping auth state listener');
       setLoading(false);
-    });
+      return;
+    }
 
-    return () => unsubscribe();
+    try {
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        if (firebaseUser) {
+          const authUser: AuthUser = {
+            ...firebaseUser,
+            id: firebaseUser.uid,
+            role: 'user', // Will be updated from database
+          };
+          setUser(authUser);
+          await syncUserWithDatabase(firebaseUser);
+        } else {
+          setUser(null);
+          setDbUser(null);
+        }
+        setLoading(false);
+      });
+
+      return () => {
+        if (typeof unsubscribe === 'function') {
+          unsubscribe();
+        }
+      };
+    } catch (error) {
+      console.warn('Error setting up auth state listener:', error);
+      setLoading(false);
+      return;
+    }
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    if (!auth) {
+      toast.error('認証サービスが利用できません');
+      throw new Error('Firebase auth not available');
+    }
     try {
       setLoading(true);
       await signInWithEmailAndPassword(auth, email, password);
@@ -104,6 +124,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, name: string) => {
+    if (!auth) {
+      toast.error('認証サービスが利用できません');
+      throw new Error('Firebase auth not available');
+    }
     try {
       setLoading(true);
       const { user: firebaseUser } = await createUserWithEmailAndPassword(
@@ -124,6 +148,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
+    if (!auth) {
+      toast.error('認証サービスが利用できません');
+      throw new Error('Firebase auth not available');
+    }
     try {
       setLoading(true);
       const provider = new GoogleAuthProvider();
@@ -139,6 +167,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    if (!auth) {
+      toast.error('認証サービスが利用できません');
+      throw new Error('Firebase auth not available');
+    }
     try {
       await firebaseSignOut(auth);
       toast.success('ログアウトしました');
