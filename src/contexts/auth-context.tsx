@@ -13,7 +13,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { AuthContextType, AuthUser } from '@/types/auth';
-import { User } from '@prisma/client';
+import { User } from '@/types/prisma';
 import { toast } from 'react-hot-toast';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

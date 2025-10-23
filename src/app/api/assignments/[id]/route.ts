@@ -4,8 +4,9 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const authorization = request.headers.get('Authorization');
     
@@ -31,7 +32,7 @@ export async function GET(
     }
 
     const assignment = await prisma.assignment.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!assignment) {
@@ -42,7 +43,7 @@ export async function GET(
     }
 
     const submissions = await prisma.submission.findMany({
-      where: { assignmentId: params.id },
+      where: { assignmentId: id },
       include: {
         user: {
           select: {
@@ -73,8 +74,9 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const authorization = request.headers.get('Authorization');
     
@@ -107,7 +109,7 @@ export async function PUT(
     }
 
     const assignment = await prisma.assignment.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!assignment) {
@@ -126,7 +128,7 @@ export async function PUT(
     if (body.maxScore !== undefined) updateData.maxScore = body.maxScore;
 
     const updatedAssignment = await prisma.assignment.update({
-      where: { id: params.id },
+      where: { id: id },
       data: updateData,
     });
 
@@ -145,8 +147,9 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const authorization = request.headers.get('Authorization');
     
@@ -179,7 +182,7 @@ export async function DELETE(
     }
 
     const assignment = await prisma.assignment.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     if (!assignment) {
@@ -190,7 +193,7 @@ export async function DELETE(
     }
 
     await prisma.assignment.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({

@@ -1,5 +1,5 @@
 import { User as FirebaseUser } from 'firebase/auth';
-import { User } from '@prisma/client';
+import { User } from './prisma';
 
 export interface AuthUser extends FirebaseUser {
   id: string;

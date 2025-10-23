@@ -4,8 +4,9 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const authorization = request.headers.get('Authorization');
     
@@ -31,7 +32,7 @@ export async function GET(
     }
 
     const submission = await prisma.submission.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         user: {
           select: {
@@ -80,8 +81,9 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const authorization = request.headers.get('Authorization');
     
@@ -115,7 +117,7 @@ export async function PUT(
     }
 
     const submission = await prisma.submission.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         assignment: {
           select: {
@@ -156,7 +158,7 @@ export async function PUT(
     }
 
     const updatedSubmission = await prisma.submission.update({
-      where: { id: params.id },
+      where: { id: id },
       data: updateData,
       include: {
         user: {

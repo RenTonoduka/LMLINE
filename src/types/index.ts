@@ -20,7 +20,7 @@ import type {
   MessageType,
   NotificationType,
   ActivityType,
-} from '@prisma/client';
+} from './prisma';
 
 export type {
   User,

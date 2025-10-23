@@ -1,12 +1,9 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import { AuthProvider } from '@/contexts/auth-context';
 import { SimpleAuthProvider } from '@/contexts/simple-auth-context';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from 'next-themes';
 import '@/styles/globals.css';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'LMS×LINE AI Support',
@@ -21,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className="font-sans">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

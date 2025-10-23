@@ -1,4 +1,11 @@
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+
+// Define UserRole locally to avoid Prisma client generation dependency
+enum UserRole {
+  STUDENT = 'STUDENT',
+  INSTRUCTOR = 'INSTRUCTOR',
+  ADMIN = 'ADMIN'
+}
 
 const prisma = new PrismaClient();
 

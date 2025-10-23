@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     const assignmentId = searchParams.get('assignmentId');
     const userId = searchParams.get('userId');
 
-    let where: any = {};
+    const where: any = {};
 
     // If user is not instructor/admin, they can only see their own submissions
     if (user.role === 'STUDENT') {
